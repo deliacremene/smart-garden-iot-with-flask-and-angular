@@ -109,7 +109,7 @@ def hello_world():
 
 # this endpoint is called by the nodemcu board to "connect" with the flask app
 # the board will be saved in the db
-@app.post('/connectBoard')
+@app.post('/boards')
 def get_boards():
     board_data = request.json
     board = Board.query.get(board_data['board_id'])
@@ -133,7 +133,7 @@ def get_boards():
 
 
 # this method calls the board's rest api to retrieve sensor data
-@app.get('/getSensorData/<int:board_id>')
+@app.get('/boards/<int:board_id>/sensor-data')
 def get_sensor_data(board_id):
     board = Board.query.get(board_id)
     if board is None:
@@ -153,8 +153,9 @@ def get_sensor_data(board_id):
 
 
 # this method calls the board's rest api to change the pump state (turn on or off)
-@app.put('/changePumpState/<int:board_id>/<string:pump_state>')
-def change_pump_state(board_id, pump_state):
+@app.put('/boards/<int:board_id>/pump-state')
+def change_pump_state(board_id):
+    pump_state = request.json["pump_state"]
     board = Board.query.get(board_id)
     if board is None:
         abort(404)
@@ -173,7 +174,7 @@ def change_pump_state(board_id, pump_state):
         return response
 
 
-@app.get('/getPumpState/<int:board_id>')
+@app.get('/boards/<int:board_id>/pump-state')
 def get_pump_state(board_id):
     board = Board.query.get(board_id)
     if board is None:
@@ -184,7 +185,7 @@ def get_pump_state(board_id):
         return response
 
 
-@app.get('/getAllBoards')
+@app.get('/boards')
 def get_all_boards():
     boards = Board.query.all() or []
     return jsonify(boards)
@@ -194,7 +195,7 @@ def get_all_boards():
 # one board/irrigation system can only be connected to a plant/crop at a time
 # a plant/crop can have multiple board/irrigation systems
 
-@app.post('/addPlant')
+@app.post('/plants')
 def create_plant():
     plant_data = request.json
     if "id" in plant_data:
@@ -205,7 +206,7 @@ def create_plant():
     return jsonify(plant), 201
 
 
-@app.get('/getPlant/<int:plant_id>')
+@app.get('/plants/<int:plant_id>')
 def get_plant(plant_id):
     plant = Plant.query.get(plant_id)
     if plant is None:
@@ -214,13 +215,13 @@ def get_plant(plant_id):
         return jsonify(plant)
 
 
-@app.get('/getAllPlants')
+@app.get('/plants')
 def get_all_plants():
     plants = Plant.query.all() or []
     return jsonify(plants)
 
 
-@app.patch('/updatePlant/<int:plant_id>')
+@app.patch('/plants/<int:plant_id>')
 def update_plant(plant_id):
     plant = Plant.query.get(plant_id)
     if plant is None:
@@ -241,7 +242,7 @@ def update_plant(plant_id):
         return '', 204
 
 
-@app.delete('/deletePlant/<int:plant_id>')
+@app.delete('/plants/<int:plant_id>')
 def delete_plant(plant_id):
     plant = Plant.query.get(plant_id)
     if plant is None:
