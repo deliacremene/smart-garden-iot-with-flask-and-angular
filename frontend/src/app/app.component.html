@@ -1,0 +1,13 @@
+<mat-tab-group>
+  <mat-tab label="Boards">
+    <button mat-raised-button color="primary" (click)="getBoards()">Refresh</button>
+    <app-board *ngFor="let board of boards" [board]="board" [plants]="plants"></app-board>
+  </mat-tab>
+  <mat-tab label="Plants">
+    <div class="card">
+      <app-plant (saved)="addPlant($event)"></app-plant>
+      <app-plant *ngFor="let plant of plants" [plant]="plant" (deleted)="deletePlant($event)"
+                 (saved)="updatePlant($event)"></app-plant>
+    </div>
+  </mat-tab>
+</mat-tab-group>

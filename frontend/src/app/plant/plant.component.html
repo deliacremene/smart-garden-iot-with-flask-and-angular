@@ -1,0 +1,36 @@
+<mat-card>
+  <p>
+    <mat-form-field appearance="outline">
+      <mat-label>Name</mat-label>
+      <input matInput [(ngModel)]="plant.name">
+    </mat-form-field>
+  </p>
+  <p>
+    <mat-form-field appearance="outline">
+      <mat-label>Image</mat-label>
+      <input matInput [(ngModel)]="plant.image">
+    </mat-form-field>
+  </p>
+  <p>
+    <mat-form-field appearance="outline">
+      <mat-label>Optimal temperature</mat-label>
+      <input matInput [(ngModel)]="plant.optimal_temperature">
+    </mat-form-field>
+  </p>
+  <p>
+    <mat-form-field appearance="outline">
+      <mat-label>Optimal moisture</mat-label>
+      <input matInput [(ngModel)]="plant.optimal_moisture">
+    </mat-form-field>
+  </p>
+  <p>
+    <mat-form-field appearance="outline">
+      <mat-label>Optimal humidity</mat-label>
+      <input matInput [(ngModel)]="plant.optimal_humidity">
+    </mat-form-field>
+  </p>
+  <mat-card-actions>
+    <button mat-raised-button color="primary" (click)="saved.emit(plant)">Save</button>
+    <button mat-button color="warn" (click)="deleted.emit(plant.id)">Delete</button>
+  </mat-card-actions>
+</mat-card>

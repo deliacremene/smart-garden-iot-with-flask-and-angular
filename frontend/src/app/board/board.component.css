@@ -1,0 +1,25 @@
+.main-card {
+  display: flex;
+  width: 100%;
+  margin: 10px;
+}
+
+.sub-card {
+  width: 200px;
+}
+
+.mat-form-field {
+  width: 100%;
+}
+
+.inactive {
+  color: red;
+}
+
+.active {
+  color: green;
+}
+
+.plot {
+  width: 80%;
+}

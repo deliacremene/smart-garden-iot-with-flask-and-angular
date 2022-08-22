@@ -1,0 +1,17 @@
+<mat-card class="main-card">
+  <mat-card class="sub-card">
+    <mat-card-title>{{board.ip}}</mat-card-title>
+    <mat-card-subtitle>{{board.id}} <span [ngClass]="board.status === 'Active' ? 'active' : 'inactive'">({{board.status}}
+      )</span></mat-card-subtitle>
+    <mat-card-content>
+      <mat-form-field appearance="outline">
+        <mat-label>Plant</mat-label>
+        <mat-select [(ngModel)]="board.plant_id" [disabled]="board.status !== 'Active'" (valueChange)="setPlant($event)">
+          <mat-option *ngFor="let plant of plants" [value]="plant.id">{{plant.name}} {{plant.image}}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-slide-toggle [checked]="pumpState" [disabled]="board.status !== 'Active'" (change)="changePumpState($event.checked)">Pump state</mat-slide-toggle>
+    </mat-card-content>
+  </mat-card>
+  <plotly-plot class="plot" [data]="data"></plotly-plot>
+</mat-card>
