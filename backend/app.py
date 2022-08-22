@@ -10,6 +10,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from ping3 import ping
 
 # database settings (should be hidden)
+from sqlalchemy import desc
+
 db_url = 'localhost:5432'
 db_name = 'smartgarden'
 db_user = 'root'
@@ -47,9 +49,9 @@ class PumpStateHistory(db.Model):
 
     __tablename__ = 'pump_state_history'
     id = db.Column(db.Integer, primary_key=True)
-    status = db.Column(db.String(50), nullable=True)
-    time = db.Column(db.DateTime, nullable=True)
-    board_id = db.Column(db.Integer, db.ForeignKey('board.id'), nullable=True)
+    status = db.Column(db.String(50), nullable=False)
+    time = db.Column(db.DateTime, nullable=False)
+    board_id = db.Column(db.Integer, db.ForeignKey('board.id'), nullable=False)
 
 
 @dataclass
@@ -81,7 +83,7 @@ class Board(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     ip = db.Column(db.String, nullable=False)
     plant_id = db.Column(db.Integer, db.ForeignKey('plant.id'), nullable=True)
-    status = db.Column(db.String, nullable=True)
+    status = db.Column(db.String, nullable=False)
 
 
 @dataclass
@@ -140,16 +142,28 @@ def get_sensor_data(board_id):
         abort(404)
     else:
         # use the board's ip to make request
-        board_ip = board.ip
-        response = requests.get('http://%s/getSensorReadings' % board_ip).json()
+        if board.status == 'Active':
 
-        # unpack the response json like a dictionary and provide the data to the constructor
-        sensor_reading = SensorReading(**response)
+            board_ip = board.ip
+            response = requests.get(f'http://{board_ip}/getSensorReadings').json()
 
-        # save a new sensor_reading object in the db
-        db.session.add(sensor_reading)
-        db.session.commit()
-        return response
+            # unpack the response json like a dictionary and provide the data to the constructor
+            sensor_reading = SensorReading(**response, time=datetime.now())
+
+            # save a new sensor_reading object in the db
+            db.session.add(sensor_reading)
+            db.session.commit()
+
+        latest = request.args.get("latest", default=1, type=int)
+        readings = SensorReading.query.filter_by(board_id=board_id).order_by(desc(SensorReading.time)).limit(
+            latest).all()
+        print(list(reversed(readings)))
+        return list(reversed(readings))
+
+
+        # mock_response = {"humidity": 49, "temperature": 25, "moisture": 60, "time": datetime.now()}
+        # return mock_response
+        # return response
 
 
 # this method calls the board's rest api to change the pump state (turn on or off)
@@ -161,17 +175,20 @@ def change_pump_state(board_id):
         abort(404)
     else:
         board_ip = board.ip
-        if pump_state == 'on':
-            response = requests.get('http://%s/turnPumpOn' % board_ip).json()
-            pump_state_history = PumpStateHistory('on', response['board_id'])
-            db.session.add(pump_state_history)
-            db.session.commit()
+        if board.status == 'Active':
+            if pump_state == 'on':
+                response = requests.get(f'http://{board_ip}/turnPumpOn').json()
+                pump_state_history = PumpStateHistory(status='on', time=datetime.now(), board_id=board_id)
+                db.session.add(pump_state_history)
+                db.session.commit()
+            else:
+                response = requests.get(f'http://{board_ip}/turnPumpOff').json()
+                pump_state_history = PumpStateHistory(status='off', time=datetime.now(), board_id=board_id)
+                db.session.add(pump_state_history)
+                db.session.commit()
+            return response
         else:
-            response = requests.get('http://%s/turnPumpOff' % board_ip).json()
-            pump_state_history = PumpStateHistory('off', response['board_id'])
-            db.session.add(pump_state_history)
-            db.session.commit()
-        return response
+            abort(404)
 
 
 @app.get('/boards/<int:board_id>/pump-state')
@@ -181,14 +198,30 @@ def get_pump_state(board_id):
         abort(404)
     else:
         board_ip = board.ip
-        response = requests.get('http://%s/getPumpState' % board_ip).json()
-        return response
+        if board.status == 'Active':
+            response = requests.get(f'http://{board_ip}/getPumpState').json()
+            print(response)
+            return response
+        else:
+            return {"board_id": board_id, "pump_state": "off"}
+
 
 
 @app.get('/boards')
 def get_all_boards():
     boards = Board.query.all() or []
     return jsonify(boards)
+
+
+@app.patch('/boards/<int:board_id>/plant')
+def set_plant_to_board(board_id):
+    board = Board.query.get(board_id)
+    if board is None:
+        abort(404)
+    else:
+        board.plant_id = request.json['plant_id']
+        db.session.commit()
+        return '', 204
 
 
 # some CRUD operations to add plants that have a one to many relationship with the board

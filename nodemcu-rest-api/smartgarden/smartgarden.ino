@@ -152,7 +152,7 @@ void connectToBackend()
   Serial.println(json);
 
   HTTPClient http; //Object of class HTTPClient
-  http.begin(wifiClient, "http://f193-46-97-176-161.ngrok.io/connectBoard");
+  http.begin(wifiClient, "http://620f-2a02-2f0e-212-5200-4c64-9bfc-b8c-b112.ngrok.io/boards");
   http.addHeader("Content-Type", "application/json");
 
   int httpCode = http.POST(json);
