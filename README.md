@@ -16,3 +16,7 @@ This is an irrigation system management project that has:
 
 ## the database schema
 ![image](https://user-images.githubusercontent.com/50794133/186077498-ce99c5ee-eff7-4f72-93f8-e6ce855c2b94.png)
+
+
+## block diagram 
+![smart-garden drawio](https://user-images.githubusercontent.com/50794133/186194156-6fae0628-c4d4-4955-ac9f-f3f4969704d5.png)
